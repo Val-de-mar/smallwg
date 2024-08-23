@@ -1,0 +1,36 @@
+services:
+  srv:
+    build: .
+    command: "bash /data/init.sh"
+    volumes:
+      - ./scripts:/data
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - internal
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.forwarding=1
+        #      - net.ipv6.conf.all.forwarding=1
+    ports:
+      - 12001:12001/udp
+  tst:
+    build: .
+    command: "slp.sh"
+    volumes:
+      - ./scripts:/data
+    deploy:
+      replicas: 3
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - internal
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.forwarding=1
+        #      - net.ipv6.conf.all.forwarding=1
+
+networks:
+  internal:
+    #    enable_ipv6: true
+    driver: bridge
