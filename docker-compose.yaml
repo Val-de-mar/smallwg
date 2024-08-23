@@ -6,6 +6,7 @@ services:
       - ./scripts:/data
     cap_add:
       - NET_ADMIN
+      - NET_RAW
     networks:
       - internal
     sysctls:
