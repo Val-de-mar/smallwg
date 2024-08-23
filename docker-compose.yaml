@@ -16,7 +16,7 @@ services:
       - 12001:12001/udp
   tst:
     build: .
-    command: "slp.sh"
+    command: "/data/slp.sh"
     volumes:
       - ./scripts:/data
     deploy:

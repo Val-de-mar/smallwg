@@ -37,11 +37,23 @@ def generate_server_config(subnet, listen_port, private_key):
     network = ipaddress.ip_network(subnet, strict=False)
     server_ip = str(next(network.hosts()))
 
+    # Define PreUp, PostUp, PreDown, and PostDown commands
+    pre_up = "echo 'Running PreUp tasks...'"
+    post_up = "iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+    pre_down = "echo 'Running PreDown tasks...'"
+    post_down = "iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
+
     server_config = f"""
 [Interface]
 Address = {server_ip}/{network.prefixlen}
 ListenPort = {listen_port}
 PrivateKey = {private_key}
+
+# Commands to run before/after the interface is brought up/down
+PreUp = {pre_up}
+PostUp = {post_up}
+PreDown = {pre_down}
+PostDown = {post_down}
 """
     return server_config
 
