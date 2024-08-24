@@ -60,6 +60,8 @@ PostDown = {post_down}
 def write_config_to_file(config, file_path):
     with open(file_path, 'w') as f:
         f.write(config)
+    # Set file permissions to be readable and writable by the owner only
+    os.chmod(file_path, 0o600)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate WireGuard server configuration.")
