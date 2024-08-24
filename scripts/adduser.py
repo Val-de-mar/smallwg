@@ -66,7 +66,7 @@ def generate_client_config(ip_address, private_key, server_public_key, endpoint,
 [Interface]
 PrivateKey = {private_key}
 Address = {ip_address}/32
-DNS = {dns_server}
+# DNS = {dns_server}
 
 [Peer]
 PublicKey = {server_public_key}
