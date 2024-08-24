@@ -64,10 +64,10 @@ def append_peer_to_config(wg_config_path, username, public_key, ip_address, ipv6
 [Peer]
 # {username}
 PublicKey = {public_key}
-AllowedIPs = {ip_address}/32
-"""
+AllowedIPs = {ip_address}/32"""
     if ipv6_address:
         peer_config += f", {ipv6_address}/128"
+    peer_config += '\n'
 
     with open(wg_config_path, 'a') as f:
         f.write(peer_config)
