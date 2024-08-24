@@ -171,4 +171,14 @@ def main():
     server_public_key = get_server_public_key(WG_INTERFACE_NAME)
 
     # Generate the client configuration
-    client_config = generate_client_config
+    client_config = generate_client_config(ip_address, private_key, server_public_key, ENDPOINT, DNS_SERVER, ALLOWED_IPS, PERSISTENT_KEEPALIVE, ipv6_address)
+
+    # Print a message to stderr and then the configuration to stdout
+    print(f"\nGenerated client configuration:", file=sys.stderr)
+    print(client_config)
+
+    # Apply the changes to the running WireGuard interface
+    apply_changes_to_server(WG_INTERFACE_NAME)
+
+if __name__ == "__main__":
+    main()
