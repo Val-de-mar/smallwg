@@ -51,23 +51,17 @@ def generate_server_config(subnet, ipv6_subnet, listen_port, private_key):
     else:
         address_line = f"Address = {server_ip}/{network.prefixlen}"
 
-    # Define PreUp, PostUp, PreDown, and PostDown commands
-    pre_up = "echo 'Running PreUp tasks...'"
-    post_up = "iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
-    pre_down = "echo 'Running PreDown tasks...'"
-    post_down = "iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
-
     server_config = f"""
 [Interface]
 {address_line}
 ListenPort = {listen_port}
 PrivateKey = {private_key}
 
-# Commands to run before/after the interface is brought up/down
-PreUp = {pre_up}
-PostUp = {post_up}
-PreDown = {pre_down}
-PostDown = {post_down}
+PreUp = echo 'Running PreUp tasks...'
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE; ip6tables -A FORWARD -i %i -j ACCEPT; ip6tables -A FORWARD -o %i -j ACCEPT
+PreDown = echo 'Running PreDown tasks...'
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE; ip6tables -D FORWARD -i %i -j ACCEPT; ip6tables -D FORWARD -o %i -j ACCEPT
+
 """
     return server_config
 
