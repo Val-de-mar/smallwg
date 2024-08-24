@@ -40,11 +40,12 @@ def get_interface_subnets(wg_config_path):
             ipv4_subnet = match
         elif network.version == 6:
             ipv6_subnet = match
-    
+
     if not ipv4_subnet:
         raise ValueError("IPv4 subnet not found in the configuration file.")
-    
+
     return ipv4_subnet, ipv6_subnet
+
 
 def generate_random_ip(subnet, existing_ips):
     subnet = ipaddress.ip_network(subnet, strict=False)
@@ -143,6 +144,7 @@ def main():
 
     existing_ips = get_existing_ips(WG_CONFIG_PATH)
     ipv4_subnet, ipv6_subnet = get_interface_subnets(WG_CONFIG_PATH)
+    
 
     ip_address = generate_random_ip(ipv4_subnet, existing_ips)
     ipv6_address = generate_random_ip(ipv6_subnet, existing_ips) if ipv6_subnet else None
