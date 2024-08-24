@@ -6,6 +6,7 @@ services:
     volumes:
       - ./scripts:/data
       - ./config:/wgconf
+      - ./serverdata:/etc/wireguard
     cap_add:
       - NET_ADMIN
       - NET_RAW
