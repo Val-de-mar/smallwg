@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Path to the preparation script (generate_wg_server_config.py)
 PREPARE_SCRIPT="/data/prepare.py"
 
@@ -13,12 +12,12 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# Source the configuration file to load SUBNET, LISTEN_PORT, and optionally PRIVATE_KEY
+# Source the configuration file to load SUBNET, LISTEN_PORT, WG_CONF, and optionally PRIVATE_KEY, IPV6_SUBNET
 source "$CONFIG_FILE"
 
-# Ensure SUBNET and LISTEN_PORT are set
+# Ensure SUBNET, LISTEN_PORT, and WG_CONF are set
 if [ -z "$SUBNET" ] || [ -z "$LISTEN_PORT" ] || [ -z "$WG_CONF" ]; then
-    echo "Error: SUBNET and LISTEN_PORT and WG_CONF must be set in $CONFIG_FILE."
+    echo "Error: SUBNET, LISTEN_PORT, and WG_CONF must be set in $CONFIG_FILE."
     exit 1
 fi
 
@@ -28,6 +27,11 @@ ARGS="--subnet \"$SUBNET\" --listen-port \"$LISTEN_PORT\" --output-file \"$WG_CO
 # If PRIVATE_KEY is set, add it to the arguments
 if [ -n "$PRIVATE_KEY" ]; then
     ARGS="$ARGS --private-key \"$PRIVATE_KEY\""
+fi
+
+# If IPV6_SUBNET is set, add it to the arguments
+if [ -n "$IPV6_SUBNET" ]; then
+    ARGS="$ARGS --ipv6-subnet \"$IPV6_SUBNET\""
 fi
 
 # Check if the WireGuard configuration file exists

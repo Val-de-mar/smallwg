@@ -11,11 +11,17 @@ def panic(message):
     print(f"Error: {message}", file=sys.stderr)
     sys.exit(1)
 
-def validate_inputs(subnet, listen_port):
+def validate_inputs(subnet, ipv6_subnet, listen_port):
     try:
         ipaddress.ip_network(subnet, strict=False)
     except ValueError:
-        panic("Invalid subnet provided.")
+        panic("Invalid IPv4 subnet provided.")
+
+    if ipv6_subnet:
+        try:
+            ipaddress.ip_network(ipv6_subnet, strict=False)
+        except ValueError:
+            panic("Invalid IPv6 subnet provided.")
 
     if not (0 < listen_port < 65536):
         panic("Invalid listen port provided. Must be between 1 and 65535.")
@@ -32,10 +38,18 @@ def generate_private_key():
     except subprocess.CalledProcessError:
         panic("Failed to generate private key.")
 
-def generate_server_config(subnet, listen_port, private_key):
-    # Generate the server's interface IP (first usable IP in the subnet)
+def generate_server_config(subnet, ipv6_subnet, listen_port, private_key):
+    # Generate the server's IPv4 interface IP (first usable IP in the subnet)
     network = ipaddress.ip_network(subnet, strict=False)
     server_ip = str(next(network.hosts()))
+
+    # Generate the server's IPv6 interface IP (first usable IP in the IPv6 subnet, if provided)
+    if ipv6_subnet:
+        ipv6_network = ipaddress.ip_network(ipv6_subnet, strict=False)
+        server_ipv6 = str(next(ipv6_network.hosts()))
+        address_line = f"Address = {server_ip}/{network.prefixlen}, {server_ipv6}/{ipv6_network.prefixlen}"
+    else:
+        address_line = f"Address = {server_ip}/{network.prefixlen}"
 
     # Define PreUp, PostUp, PreDown, and PostDown commands
     pre_up = "echo 'Running PreUp tasks...'"
@@ -45,7 +59,7 @@ def generate_server_config(subnet, listen_port, private_key):
 
     server_config = f"""
 [Interface]
-Address = {server_ip}/{network.prefixlen}
+{address_line}
 ListenPort = {listen_port}
 PrivateKey = {private_key}
 
@@ -65,14 +79,15 @@ def write_config_to_file(config, file_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate WireGuard server configuration.")
-    parser.add_argument("--subnet", required=True, help="Subnet for the WireGuard server (e.g., 10.0.0.0/24)")
+    parser.add_argument("--subnet", required=True, help="IPv4 subnet for the WireGuard server (e.g., 10.0.0.0/24)")
+    parser.add_argument("--ipv6-subnet", help="Optional IPv6 subnet for the WireGuard server (e.g., fd00::/64)")
     parser.add_argument("--listen-port", type=int, required=True, help="Listen port for the WireGuard server (1-65535)")
     parser.add_argument("--private-key", help="Private key for the WireGuard server (if not provided, a new key will be generated)")
     parser.add_argument("--output-file", default=DEFAULT_CONF_FILE_PATH, help="Path to save the configuration file (default: /etc/wireguard/wg0.conf)")
 
     args = parser.parse_args()
 
-    validate_inputs(args.subnet, args.listen_port)
+    validate_inputs(args.subnet, args.ipv6_subnet, args.listen_port)
 
     # Generate a private key if one is not provided
     if not args.private_key:
@@ -83,7 +98,7 @@ def main():
 
     check_existing_config(args.output_file)
 
-    server_config = generate_server_config(args.subnet, args.listen_port, private_key)
+    server_config = generate_server_config(args.subnet, args.ipv6_subnet, args.listen_port, private_key)
 
     write_config_to_file(server_config, args.output_file)
 
