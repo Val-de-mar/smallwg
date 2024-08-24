@@ -1,5 +1,6 @@
 services:
   srv:
+    container_name: wg-server
     build: .
     command: "bash /data/init.sh"
     volumes:
@@ -16,21 +17,21 @@ services:
         #      - net.ipv6.conf.all.forwarding=1
     ports:
       - 12001:12001/udp
-  tst:
-    build: .
-    command: "/data/slp.sh"
-    volumes:
-      - ./scripts:/data
-    deploy:
-      replicas: 3
-    cap_add:
-      - NET_ADMIN
-    networks:
-      - internal
-    sysctls:
-      - net.ipv4.ip_forward=1
-      - net.ipv4.conf.all.forwarding=1
-        #      - net.ipv6.conf.all.forwarding=1
+  # tst:
+  #   build: .
+  #   command: "/data/slp.sh"
+  #   volumes:
+  #     - ./scripts:/data
+  #   deploy:
+  #     replicas: 3
+  #   cap_add:
+  #     - NET_ADMIN
+  #   networks:
+  #     - internal
+  #   sysctls:
+  #     - net.ipv4.ip_forward=1
+  #     - net.ipv4.conf.all.forwarding=1
+  #       #      - net.ipv6.conf.all.forwarding=1
 
 networks:
   internal:

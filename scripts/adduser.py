@@ -6,7 +6,7 @@ import ipaddress
 import configparser
 
 # Global constant for configuration file path
-CONFIG_FILE_PATH = '/wgconf/config'
+CONFIG_FILE_PATH = '/wgconf/adduser.conf'
 CONF_FILE_PATH = '/etc/wireguard/wg0.conf'
 
 
