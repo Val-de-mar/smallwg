@@ -92,7 +92,9 @@ def generate_key_pair():
 
 def apply_changes_to_server(interface_name):
     try:
-        subprocess.run(['wg', 'syncconf', interface_name, f'<(wg-quick strip {interface_name})'], shell=True, check=True)
+        # Use process substitution to pass the output of wg-quick strip to wg syncconf
+        command = f"wg syncconf {interface_name} <(wg-quick strip {interface_name})"
+        subprocess.run(command, shell=True, check=True, executable='/bin/bash')
         print(f"Configuration successfully applied to {interface_name}.", file=sys.stderr)
     except subprocess.CalledProcessError:
         print(f"Failed to apply configuration to {interface_name}.", file=sys.stderr)
