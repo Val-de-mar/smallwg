@@ -4,6 +4,7 @@ services:
     command: "bash /data/init.sh"
     volumes:
       - ./scripts:/data
+      - ./config:/wgconf
     cap_add:
       - NET_ADMIN
       - NET_RAW
