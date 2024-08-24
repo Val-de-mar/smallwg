@@ -20,11 +20,19 @@ def get_existing_ips(wg_config_path):
     with open(wg_config_path, 'r') as f:
         data = f.read()
     # Find all existing IP addresses in the [Peer] sections
-    existing_ips = re.findall(r'AllowedIPs\s*=\s*([\d\.:\./]+)', data)
+    existing_ips = re.findall(r'AllowedIPs\s*=\s*([^\n]+)', data)
     # Also include the IP in the [Interface] Address field
-    interface_ips = re.findall(r'Address\s*=\s*([\d\.:\./]+)', data)
-    existing_ips.extend(interface_ips)
-    return [ip.split('/')[0] for ip in existing_ips]
+    interface_ips = re.findall(r'Address\s*=\s*([^\n]+)', data)
+    
+    all_ips = []
+    
+    for ip_line in existing_ips + interface_ips:
+        # Split by comma if multiple addresses are on the same line
+        addresses = [addr.strip().split('/')[0] for addr in ip_line.split(',')]
+        all_ips.extend(addresses)
+
+    return all_ips
+
 
 def get_interface_subnets(wg_config_path):
     with open(wg_config_path, 'r') as f:
@@ -40,11 +48,14 @@ def get_interface_subnets(wg_config_path):
         addresses = [addr.strip() for addr in line.split(',')]
         
         for addr in addresses:
-            network = ipaddress.ip_network(addr, strict=False)
-            if network.version == 4:
-                ipv4_subnet = addr
-            elif network.version == 6:
-                ipv6_subnet = addr
+            try:
+                network = ipaddress.ip_network(addr, strict=False)
+                if network.version == 4:
+                    ipv4_subnet = addr
+                elif network.version == 6:
+                    ipv6_subnet = addr
+            except ValueError:
+                continue
 
     if not ipv4_subnet:
         raise ValueError("IPv4 subnet not found in the configuration file.")
@@ -84,13 +95,13 @@ def generate_client_config(ip_address, private_key, server_public_key, endpoint,
     client_config = f"""
 [Interface]
 PrivateKey = {private_key}
-Address = {ip_address}/32
-"""
+Address = {ip_address}/32"""
     if ipv6_address:
         client_config += f", {ipv6_address}/128"
+    client_config += '\n'
 
     client_config += f"""
-# DNS = {dns_server}
+DNS = {dns_server}
 
 [Peer]
 PublicKey = {server_public_key}
@@ -141,7 +152,7 @@ def main():
         username = input()
         private_key, public_key = generate_key_pair()
     else:
-        print("Enter the username: ", file=sys.stderr, end="")
+        print("Enter the username: ", file.sys.stderr, end="")
         username = input()
         print("Enter the public key: ", file=sys.stderr, end="")
         public_key = input()
@@ -160,14 +171,4 @@ def main():
     server_public_key = get_server_public_key(WG_INTERFACE_NAME)
 
     # Generate the client configuration
-    client_config = generate_client_config(ip_address, private_key, server_public_key, ENDPOINT, DNS_SERVER, ALLOWED_IPS, PERSISTENT_KEEPALIVE, ipv6_address)
-
-    # Print a message to stderr and then the configuration to stdout
-    print(f"\nGenerated client configuration:", file=sys.stderr)
-    print(client_config)
-
-    # Apply the changes to the running WireGuard interface
-    apply_changes_to_server(WG_INTERFACE_NAME)
-
-if __name__ == "__main__":
-    main()
+    client_config = generate_client_config
