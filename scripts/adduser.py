@@ -29,17 +29,22 @@ def get_existing_ips(wg_config_path):
 def get_interface_subnets(wg_config_path):
     with open(wg_config_path, 'r') as f:
         data = f.read()
-    # Find the subnets in the [Interface] section
-    matches = re.findall(r'Address\s*=\s*([\d\.:\./]+)', data)
+
+    # Find all Address lines and split them by commas if needed
+    address_lines = re.findall(r'Address\s*=\s*([^\n]+)', data)
     ipv4_subnet = None
     ipv6_subnet = None
 
-    for match in matches:
-        network = ipaddress.ip_network(match, strict=False)
-        if network.version == 4:
-            ipv4_subnet = match
-        elif network.version == 6:
-            ipv6_subnet = match
+    for line in address_lines:
+        # Split by comma if multiple addresses are on the same line
+        addresses = [addr.strip() for addr in line.split(',')]
+        
+        for addr in addresses:
+            network = ipaddress.ip_network(addr, strict=False)
+            if network.version == 4:
+                ipv4_subnet = addr
+            elif network.version == 6:
+                ipv6_subnet = addr
 
     if not ipv4_subnet:
         raise ValueError("IPv4 subnet not found in the configuration file.")
@@ -144,7 +149,6 @@ def main():
 
     existing_ips = get_existing_ips(WG_CONFIG_PATH)
     ipv4_subnet, ipv6_subnet = get_interface_subnets(WG_CONFIG_PATH)
-    
 
     ip_address = generate_random_ip(ipv4_subnet, existing_ips)
     ipv6_address = generate_random_ip(ipv6_subnet, existing_ips) if ipv6_subnet else None
