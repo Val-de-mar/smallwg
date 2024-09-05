@@ -1,6 +1,5 @@
 services:
-  srv:
-    container_name: wg-server
+  wireguard-server:
     build: .
     command: "bash /data/init.sh"
     volumes:
