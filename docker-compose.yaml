@@ -17,3 +17,10 @@ services:
       - net.ipv6.conf.eth0.proxy_ndp=1
     ports:
       - 12001:12001/udp
+    networks:
+      - internal
+
+networks:
+  internal:
+    enable_ipv6: true
+    driver: bridge
