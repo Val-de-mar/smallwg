@@ -53,13 +53,25 @@ if [[ -n "$PROHIBIT_SUBNETS" ]]; then
 
     # Loop through each subnet in the array
     for subnet in "${subnets[@]}"; do
-        # Check if iptables rule for this subnet already exists
-        if ! iptables -C FORWARD -i wg0 -d "$subnet" -j REJECT 2>/dev/null; then
-            # If the rule does not exist, add it
-            iptables -A FORWARD -i wg0 -d "$subnet" -j REJECT
-            echo "Rule added for subnet: $subnet"
-        else
-            echo "Rule already exists for subnet: $subnet"
+        # Determine if the subnet is IPv4 or IPv6
+        if [[ "$subnet" =~ ":" ]]; then  # Check if it contains ':', indicating IPv6
+            # Check if ip6tables rule for this subnet already exists
+            if ! ip6tables -C FORWARD -i wg0 -d "$subnet" -j REJECT 2>/dev/null; then
+                # If the rule does not exist, add it
+                ip6tables -A FORWARD -i wg0 -d "$subnet" -j REJECT
+                echo "IPv6 rule added for subnet: $subnet"
+            else
+                echo "IPv6 rule already exists for subnet: $subnet"
+            fi
+        else  # Otherwise, assume it's IPv4
+            # Check if iptables rule for this subnet already exists
+            if ! iptables -C FORWARD -i wg0 -d "$subnet" -j REJECT 2>/dev/null; then
+                # If the rule does not exist, add it
+                iptables -A FORWARD -i wg0 -d "$subnet" -j REJECT
+                echo "IPv4 rule added for subnet: $subnet"
+            else
+                echo "IPv4 rule already exists for subnet: $subnet"
+            fi
         fi
     done
 else
