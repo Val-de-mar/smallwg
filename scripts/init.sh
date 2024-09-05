@@ -46,6 +46,26 @@ if [ ! -f "$WG_CONF" ]; then
     fi
 fi
 
+# Check if PROHIBIT_SUBNETS is set
+if [[ -n "$PROHIBIT_SUBNETS" ]]; then
+    # Split the PROHIBIT_SUBNETS into an array using ',' as a delimiter
+    IFS=',' read -r -a subnets <<< "$PROHIBIT_SUBNETS"
+
+    # Loop through each subnet in the array
+    for subnet in "${subnets[@]}"; do
+        # Check if iptables rule for this subnet already exists
+        if ! iptables -C FORWARD -i wg0 -d "$subnet" -j REJECT 2>/dev/null; then
+            # If the rule does not exist, add it
+            iptables -A FORWARD -i wg0 -d "$subnet" -j REJECT
+            echo "Rule added for subnet: $subnet"
+        else
+            echo "Rule already exists for subnet: $subnet"
+        fi
+    done
+else
+    echo "PROHIBIT_SUBNETS is not set or is empty."
+fi
+
 # Start the WireGuard interface
 echo "Starting WireGuard interface wg0..."
 wg-quick up wg0 &&
