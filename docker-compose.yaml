@@ -10,31 +10,10 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
-    networks:
-      - internal
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.forwarding=1
-        #      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.eth0.proxy_ndp=1
     ports:
       - 12001:12001/udp
-  # tst:
-  #   build: .
-  #   command: "/data/slp.sh"
-  #   volumes:
-  #     - ./scripts:/data
-  #   deploy:
-  #     replicas: 3
-  #   cap_add:
-  #     - NET_ADMIN
-  #   networks:
-  #     - internal
-  #   sysctls:
-  #     - net.ipv4.ip_forward=1
-  #     - net.ipv4.conf.all.forwarding=1
-  #       #      - net.ipv6.conf.all.forwarding=1
-
-networks:
-  internal:
-    #    enable_ipv6: true
-    driver: bridge

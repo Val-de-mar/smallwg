@@ -152,7 +152,7 @@ def main():
         username = input()
         private_key, public_key = generate_key_pair()
     else:
-        print("Enter the username: ", file.sys.stderr, end="")
+        print("Enter the username: ", file=sys.stderr, end="")
         username = input()
         print("Enter the public key: ", file=sys.stderr, end="")
         public_key = input()
